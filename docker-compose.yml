@@ -1,0 +1,17 @@
+#  the attribute `version` is obsolete WARNのためversion省略
+services:
+  db:
+    image: postgres:16
+    container_name: urlshort_pg
+    restart: always
+    environment:
+      POSTGRES_USER: urlshort
+      POSTGRES_PASSWORD: urlshort
+      POSTGRES_DB: urlshort
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
