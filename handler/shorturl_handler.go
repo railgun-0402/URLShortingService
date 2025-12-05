@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"url-shorting-service/repository"
+	"url-shorting-service/domain"
 	"url-shorting-service/usecase"
 
 	"github.com/labstack/echo/v4"
@@ -63,7 +63,7 @@ func (h *ShortURLHandler) Redirect(c echo.Context) error {
 
 	s, err := h.uc.Resolve(c.Request().Context(), id)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
+		if errors.Is(err, domain.ErrNotFound) {
 			return echo.NewHTTPError(http.StatusNotFound, "not found")
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, "internal error")

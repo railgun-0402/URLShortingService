@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"net/url"
 	"time"
-	domain "url-shorting-service/domain/v1"
-	"url-shorting-service/repository"
+	"url-shorting-service/domain"
+	"url-shorting-service/repository/postgres"
 )
 
 // 適当なID
@@ -20,11 +20,11 @@ type ShortURLUseCase interface {
 }
 
 type shortURLUsecase struct {
-	repo    repository.ShortURLRepository
+	repo    *postgres.PostgresShortURLRepository
 	baseURL string
 }
 
-func NewShortURLUsecase(repo repository.ShortURLRepository, baseURL string) ShortURLUseCase {
+func NewShortURLUsecase(repo *postgres.PostgresShortURLRepository, baseURL string) ShortURLUseCase {
 	return &shortURLUsecase{
 		repo:    repo,
 		baseURL: baseURL,
@@ -53,8 +53,8 @@ func (u *shortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.Sh
 			OriginalURL: rawURL,
 			CreatedAt:   time.Now(),
 		}
-		if err := u.repo.Save(s); err != nil {
-			if errors.Is(err, repository.ErrAlreadyExists) {
+		if err := u.repo.Save(ctx, s); err != nil {
+			if errors.Is(err, domain.ErrAlreadyExists) {
 				continue // 衝突 → 再トライ
 			}
 			return domain.ShortURL{}, err
@@ -66,7 +66,7 @@ func (u *shortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.Sh
 }
 
 func (u *shortURLUsecase) Resolve(ctx context.Context, id string) (domain.ShortURL, error) {
-	return u.repo.Find(id)
+	return u.repo.Find(ctx, id)
 }
 
 // ID生成はとりあえず usecase 側に置く
