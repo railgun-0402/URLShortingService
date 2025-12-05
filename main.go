@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"url-shorting-service/handler"
-	"url-shorting-service/repository"
+	"url-shorting-service/repository/postgres"
 	"url-shorting-service/usecase"
 
 	"github.com/labstack/echo/v4"
@@ -42,7 +42,7 @@ func main() {
 	// repo := repository.NewInMemoryShortURLRepository()
 
 	// v2
-	repo := repository.NewPostgresShortURLRepository(db)
+	repo := postgres.NewPostgresShortURLRepository(db)
 	uc := usecase.NewShortURLUsecase(repo, baseURL)
 	h := handler.NewShortURLHandler(uc)
 	h.RegisterRoutes(e)

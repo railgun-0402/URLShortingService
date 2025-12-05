@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 	"url-shorting-service/domain"
-	"url-shorting-service/repository"
+	"url-shorting-service/repository/postgres"
 )
 
 // 適当なID
@@ -20,11 +20,11 @@ type ShortURLUseCase interface {
 }
 
 type shortURLUsecase struct {
-	repo    *repository.PostgresShortURLRepository
+	repo    *postgres.PostgresShortURLRepository
 	baseURL string
 }
 
-func NewShortURLUsecase(repo *repository.PostgresShortURLRepository, baseURL string) ShortURLUseCase {
+func NewShortURLUsecase(repo *postgres.PostgresShortURLRepository, baseURL string) ShortURLUseCase {
 	return &shortURLUsecase{
 		repo:    repo,
 		baseURL: baseURL,
