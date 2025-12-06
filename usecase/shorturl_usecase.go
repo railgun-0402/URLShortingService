@@ -8,39 +8,34 @@ import (
 	"net/url"
 	"time"
 	"url-shorting-service/domain"
-	"url-shorting-service/repository/postgres"
 )
 
 // 適当なID
 const idAlphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-type ShortURLUseCase interface {
-	Shorten(ctx context.Context, rawURL string) (domain.ShortURL, error)
-	Resolve(ctx context.Context, id string) (domain.ShortURL, error)
-}
-
-type shortURLUsecase struct {
-	repo    *postgres.PostgresShortURLRepository
+type ShortURLUsecase struct {
+	repo    domain.ShortURLRepository
 	baseURL string
 }
 
-func NewShortURLUsecase(repo *postgres.PostgresShortURLRepository, baseURL string) ShortURLUseCase {
-	return &shortURLUsecase{
+var (
+	id string
+	s  domain.ShortURL
+)
+
+func NewShortURLUsecase(repo domain.ShortURLRepository, baseURL string) *ShortURLUsecase {
+	return &ShortURLUsecase{
 		repo:    repo,
 		baseURL: baseURL,
 	}
 }
 
-func (u *shortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.ShortURL, error) {
+func (u *ShortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.ShortURL, error) {
 	if _, err := url.ParseRequestURI(rawURL); err != nil {
 		return domain.ShortURL{}, err
 	}
 
-	var (
-		id string
-		s  domain.ShortURL
-	)
-
+	// 5回は任意の回数で試してるだけ
 	for i := 0; i < 5; i++ {
 		tmpID, err := generateID(8)
 		if err != nil {
@@ -65,7 +60,7 @@ func (u *shortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.Sh
 	return domain.ShortURL{}, fmt.Errorf("could not generate unique id")
 }
 
-func (u *shortURLUsecase) Resolve(ctx context.Context, id string) (domain.ShortURL, error) {
+func (u *ShortURLUsecase) Resolve(ctx context.Context, id string) (domain.ShortURL, error) {
 	return u.repo.Find(ctx, id)
 }
 

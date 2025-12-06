@@ -11,10 +11,10 @@ import (
 )
 
 type ShortURLHandler struct {
-	uc usecase.ShortURLUseCase
+	uc *usecase.ShortURLUsecase
 }
 
-func NewShortURLHandler(uc usecase.ShortURLUseCase) *ShortURLHandler {
+func NewShortURLHandler(uc *usecase.ShortURLUsecase) *ShortURLHandler {
 	return &ShortURLHandler{uc: uc}
 }
 
