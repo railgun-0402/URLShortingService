@@ -7,15 +7,15 @@ import (
 	"url-shorting-service/domain"
 )
 
-type PostgresShortURLRepository struct {
+type ShortURLRepository struct {
 	db *sql.DB
 }
 
-func NewPostgresShortURLRepository(db *sql.DB) *PostgresShortURLRepository {
-	return &PostgresShortURLRepository{db: db}
+func NewPostgresShortURLRepository(db *sql.DB) *ShortURLRepository {
+	return &ShortURLRepository{db: db}
 }
 
-func (r *PostgresShortURLRepository) Save(ctx context.Context, s domain.ShortURL) error {
+func (r *ShortURLRepository) Save(ctx context.Context, s domain.ShortURL) error {
 	// ON CONFLICT で衝突時は何もしない → rowsAffected = 0 なら ErrAlreadyExists とみなす
 	const q = `
 		INSERT INTO short_urls (id, original_url, created_at)
@@ -36,7 +36,7 @@ func (r *PostgresShortURLRepository) Save(ctx context.Context, s domain.ShortURL
 	return err
 }
 
-func (r *PostgresShortURLRepository) Find(ctx context.Context, id string) (domain.ShortURL, error) {
+func (r *ShortURLRepository) Find(ctx context.Context, id string) (domain.ShortURL, error) {
 	const q = `SELECT id, original_url, created_at FROM short_urls WHERE id = $1;`
 
 	var s domain.ShortURL
