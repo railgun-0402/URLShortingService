@@ -28,12 +28,12 @@ func (r *ShortURLRepository) Save(ctx context.Context, s domain.ShortURL) error 
 	}
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return domain.ErrAlreadyExists
+		return err
 	}
 	if affected == 0 {
 		return domain.ErrAlreadyExists
 	}
-	return err
+	return nil
 }
 
 func (r *ShortURLRepository) Find(ctx context.Context, id string) (domain.ShortURL, error) {

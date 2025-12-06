@@ -18,6 +18,11 @@ type ShortURLUsecase struct {
 	baseURL string
 }
 
+var (
+	id string
+	s  domain.ShortURL
+)
+
 func NewShortURLUsecase(repo domain.ShortURLRepository, baseURL string) *ShortURLUsecase {
 	return &ShortURLUsecase{
 		repo:    repo,
@@ -30,11 +35,7 @@ func (u *ShortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.Sh
 		return domain.ShortURL{}, err
 	}
 
-	var (
-		id string
-		s  domain.ShortURL
-	)
-
+	// 5回は任意の回数で試してるだけ
 	for i := 0; i < 5; i++ {
 		tmpID, err := generateID(8)
 		if err != nil {
