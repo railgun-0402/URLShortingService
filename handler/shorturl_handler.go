@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 	"os"
 	"url-shorting-service/domain"
@@ -63,11 +62,12 @@ func (h *ShortURLHandler) Redirect(c echo.Context) error {
 
 	s, err := h.uc.Resolve(c.Request().Context(), id)
 	if err != nil {
-		if errors.Is(err, domain.ErrNotFound) {
+		switch err {
+		case domain.ErrExpired, domain.ErrNotFound:
 			return echo.NewHTTPError(http.StatusNotFound, "not found")
+		default:
+			return echo.NewHTTPError(http.StatusInternalServerError, "internal error")
 		}
-		return echo.NewHTTPError(http.StatusInternalServerError, "internal error")
 	}
-
 	return c.Redirect(http.StatusFound, s.OriginalURL) // 302
 }
