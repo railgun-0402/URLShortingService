@@ -19,10 +19,10 @@ func (r *ShortURLRepository) Save(ctx context.Context, s domain.ShortURL) error 
 	// ON CONFLICT で衝突時は何もしない → rowsAffected = 0 なら ErrAlreadyExists とみなす
 	const q = `
 		INSERT INTO short_urls (id, original_url, created_at)
-		VALUES ($1, $2, $3)
+		VALUES ($1, $2, $3, $4)
 		ON CONFLICT (id) DO NOTHING;
 		`
-	res, err := r.db.ExecContext(ctx, q, s.ID, s.OriginalURL, s.CreatedAt)
+	res, err := r.db.ExecContext(ctx, q, s.ID, s.OriginalURL, s.CreatedAt, s.ExpiresAt)
 	if err != nil {
 		return err
 	}
@@ -44,6 +44,7 @@ func (r *ShortURLRepository) Find(ctx context.Context, id string) (domain.ShortU
 		&s.ID,
 		&s.OriginalURL,
 		&s.CreatedAt,
+		&s.ExpiresAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -6,4 +6,5 @@ type ShortURL struct {
 	ID          string
 	OriginalURL string
 	CreatedAt   time.Time
+	ExpiresAt   *time.Time
 }

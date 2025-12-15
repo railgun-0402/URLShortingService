@@ -134,3 +134,17 @@ func TestResolve_NotFound(t *testing.T) {
 	_, err := uc.Resolve(context.Background(), "notfound")
 	require.ErrorIs(t, err, domain.ErrNotFound)
 }
+
+func TestResolve_URLExpired(t *testing.T) {
+	t.Parallel()
+
+	mockRepo := &mockShortURLRepo{
+		findFunc: func(ctx context.Context, id string) (domain.ShortURL, error) {
+			return domain.ShortURL{}, domain.ErrExpired
+		},
+	}
+
+	uc := usecase.NewShortURLUsecase(mockRepo, "http://localhost:8080")
+	_, err := uc.Resolve(context.Background(), "notfound")
+	require.ErrorIs(t, err, domain.ErrExpired)
+}

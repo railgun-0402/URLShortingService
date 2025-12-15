@@ -10,8 +10,11 @@ import (
 	"url-shorting-service/domain"
 )
 
-// 適当なID
-const idAlphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const (
+	maxIDGenRetry = 5
+	shortURLTTL   = 24 * 30 * time.Hour                                              // Expire：30日
+	idAlphabet    = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // 適当なID
+)
 
 type ShortURLUsecase struct {
 	repo    domain.ShortURLRepository
@@ -34,9 +37,11 @@ func (u *ShortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.Sh
 	if _, err := url.ParseRequestURI(rawURL); err != nil {
 		return domain.ShortURL{}, err
 	}
+	now := time.Now()
+	exp := now.Add(shortURLTTL)
 
-	// 5回は任意の回数で試してるだけ
-	for i := 0; i < 5; i++ {
+	var lastErr error
+	for i := 0; i < maxIDGenRetry; i++ {
 		tmpID, err := generateID(8)
 		if err != nil {
 			return domain.ShortURL{}, err
@@ -46,10 +51,12 @@ func (u *ShortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.Sh
 		s = domain.ShortURL{
 			ID:          id,
 			OriginalURL: rawURL,
-			CreatedAt:   time.Now(),
+			CreatedAt:   now,
+			ExpiresAt:   &exp,
 		}
 		if err := u.repo.Save(ctx, s); err != nil {
 			if errors.Is(err, domain.ErrAlreadyExists) {
+				lastErr = err
 				continue // 衝突 → 再トライ
 			}
 			return domain.ShortURL{}, err
@@ -57,11 +64,21 @@ func (u *ShortURLUsecase) Shorten(ctx context.Context, rawURL string) (domain.Sh
 		return s, nil
 	}
 
+	if lastErr != nil {
+		return domain.ShortURL{}, lastErr
+	}
 	return domain.ShortURL{}, fmt.Errorf("could not generate unique id")
 }
 
 func (u *ShortURLUsecase) Resolve(ctx context.Context, id string) (domain.ShortURL, error) {
-	return u.repo.Find(ctx, id)
+	s, err := u.repo.Find(ctx, id)
+	if err != nil {
+		return domain.ShortURL{}, err
+	}
+	if s.ExpiresAt != nil && s.ExpiresAt.Before(time.Now()) {
+		return domain.ShortURL{}, domain.ErrExpired
+	}
+	return s, nil
 }
 
 // ID生成はとりあえず usecase 側に置く
