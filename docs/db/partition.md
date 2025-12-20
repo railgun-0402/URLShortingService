@@ -145,11 +145,49 @@ DROP TABLE click_events_2025_12;
 - まずは 50万〜200万件 くらい click_events を入れる
 - COPY でもいいが、最初はバルクINSERTでも可
 
-```go
-dsn := os.Getenv("DATABASE_URL") // postgres://user:pass@host:5432/db?sslmode=require
-db, _ := sql.Open("pgx", dsn)
-```
+#### データ投入の方針（擬似）：
 
-データ投入の方針（擬似）：
 - occurred_at を 2025-12 と 2026-01 に散らして入れる
 - 計測クエリを2パターン流す（期間あり/なし）
+
+## リファクタ案
+
+現在は50万件のデータを500 * 1000回INSERTに試しにしているが・・・
+batchSizeを2000にするとINSERTは250回で済む
+
+```go
+// とりあえず1回のINSERTに詰める行数を設定
+const batchSize = 500
+```
+
+### batchSizeが多：メリット
+
+- 1度実行する際のINSERT回数減(NW/COMMIT/実行回数の負担が減る)
+- 単純に速くなる
+
+### batchSizeが多：デメリット
+
+- 1度のクエリが巨大になるので実行が重くなる
+- 1度の実行によるメモリ使用量が増える
+- postgresでmax_stack_depthやwork_memに引っかかる可能性
+- RDSに接続する際NWで不安定になる可能性
+
+### ベストな値を探る
+
+当然計測が必要になる。
+
+1. まず固定条件を決める
+- n（例：200,000）
+- 同じRDS/同じ時間帯
+
+2. batchSizeだけ変えて計測
+
+- 500 / 1000 / 2000 / 5000 あたり
+
+3. rows/sec と 失敗率 と CPU/メモリ を見る
+
+ここは詳しくないが、AIによると↓なので要検証
+
+```bash
+さらに速さ追求するなら、Postgresは結局 COPY が王者です。バッチINSERTは「手軽さ優先」
+```
