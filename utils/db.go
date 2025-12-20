@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 )
@@ -35,9 +36,13 @@ func OpenDB() (*sql.DB, error) {
 }
 
 func maskDSN(dsn string) string {
-	// 表示を隠す
-	if len(dsn) > 10 {
-		return dsn[:20] + "..." + dsn[len(dsn)-10:]
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "***"
 	}
-	return dsn
+	if u.User != nil {
+		username := u.User.Username()
+		u.User = url.UserPassword(username, "***")
+	}
+	return u.String()
 }
