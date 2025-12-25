@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
@@ -18,8 +21,10 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Download dependencies
-        run: go mod download
+      - name: Ensure go.mod/go.sum are tidy
+        run: | 
+          go mod tidy
+          git diff --exit-code go.mod go.sum
 
       - name: Check formatting
         run: |
