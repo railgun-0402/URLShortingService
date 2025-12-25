@@ -30,6 +30,7 @@ jobs:
             exit 1
           fi
 
+      # 最低限のチェック
       - name: Run go vet
         run: go vet ./...
 
