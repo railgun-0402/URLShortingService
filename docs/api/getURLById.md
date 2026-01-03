@@ -18,23 +18,29 @@
 
 ## Endpoint
 
-- /{id}
+- /admin/urls/{id}
 - GET Method
 
-## GET /:id
+## GET /admin/urls/:id
 
 ---
 
 ### request
 
 ```bash
-curl -i http://localhost:8080/aBcD12eF
+curl -i http://localhost:8080/admin/urls/aBcD12eF
 ```
 
 ### result
-```bash
-Status Code: 200
-URL: https://example.com/foo/bar?param=123
+```json
+{
+  "id": "aBcD12eF",
+  "original_url": "https://example.com/foo/bar?param=123",
+  "short_url": "https://sho.rt/r/aBcD12eF",
+  "expires_at": "2026-02-01T00:00:00Z",
+  "created_at": "2026-01-03T12:00:00Z",
+  "created_by": "user_123"
+}
 ```
 
 ## Not Exist ID
@@ -44,45 +50,50 @@ URL: https://example.com/foo/bar?param=123
 ### request
 
 ```bash
-curl -i http://localhost:8080/notfound123
+curl -i http://localhost:8080/admin/urls/notfound123
 ```
 
 ### result
-```bash
-HTTP/1.1 404 Not Found
-{"message":"short url not found"}
+```json
+{
+  "error": {
+    "code": 404,
+    "message": "short url not found",
+    "request_id": "..."
+  }
+}
 ```
-## empty URL
+
+## Expire URL
 
 ---
 
 ### request
 
 ```bash
-curl -X POST http://localhost:8080/shorten \
-  -H "Content-Type: application/json" \
-  -d '{"url": ""}'
+curl -i http://localhost:8080/admin/urls/notfound123
 ```
 
 ### result
-```bash
-HTTP/1.1 400 Bad Request
-{"message":"url is required"}
+```json
+{
+  "error": {
+    "code": 404,
+    "message": "short url not found",
+    "request_id": "..."
+  }
+}
 ```
 
-## irregular URL
+
+
+## Auth Check
 
 ---
 
-### request
-```bash
-curl -X POST http://localhost:8080/shorten \
-  -H "Content-Type: application/json" \
-  -d '{"url": "hogehoge"}'
-```
+### 仕様
 
-### result
-```bash
-HTTP/1.1 400 Bad Request
-{"message":"invalid url format"}
-```
+- 認証方式（例：Bearer JWT / Session）
+- 認可ルール
+  - url.tenant_id == user.tenant_id のみ取得可
+  - それ以外は403にする
