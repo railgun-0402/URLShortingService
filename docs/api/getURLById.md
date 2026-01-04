@@ -151,16 +151,16 @@ curl -i http://localhost:8080/admin/urls/expired123
 ## Audit Log
 ### Purpose
 
-- 誰が・いつ・何を・どこから・どうした を追跡し、
+- 誰が・いつ・何を・どこから・どうした を追跡
 - 不正調査・問い合わせ対応・運用に利用する
 
 ### Logged Actions
 
 - SHORT_URL_READ : GET /admin/urls/{id}
 
-- SHORT_URL_UPDATE : PATCH /admin/urls/{id}（今後追加想定）
+- SHORT_URL_UPDATE : PATCH /admin/urls/{id}
 
-- SHORT_URL_DELETE : DELETE /admin/urls/{id}（今後追加想定）
+- SHORT_URL_DELETE : DELETE /admin/urls/{id}
 
 ### Recommended Fields
 
@@ -180,7 +180,7 @@ curl -i http://localhost:8080/admin/urls/expired123
 
 - ip_hash（生IPは保存しない）
 
-- user_agent（必要なら。保持とサイズに注意）
+- user_agent（保持とサイズに注意）
 
 - diff（UPDATE時のみ。PIIマスキング必須）
 
